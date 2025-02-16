@@ -41,7 +41,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Release
-        uses: HRM/github-action-npm-release@v2.0.3
+        uses: HRM/github-action-npm-release@2.0.5
         id: release
       - name: Print release output
         if: ${{ steps.release.outputs.released == 'true' }}
@@ -67,7 +67,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Automatic GitHub Release
-        uses: HRM/github-action-npm-release@v2.0.3
+        uses: HRM/github-action-npm-release@2.0.5
         id: release
       - uses: actions/setup-node@v1
         if: steps.release.outputs.released == 'true'
