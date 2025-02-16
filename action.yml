@@ -1,5 +1,5 @@
 name: Automatic GitHub Release Neo
-description: Automatic GitHub release when the package.json version changes
+description: Automatic GitHub release when the package.json version changes (updated).
 branding:
   color: blue
   icon: archive
