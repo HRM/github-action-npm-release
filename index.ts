@@ -1,8 +1,11 @@
-const core = require('@actions/core');
-const {Octokit} = require('@octokit/rest');
-const {join: pathJoin} = require('path');
-const {promisify} = require('util');
-const exec = promisify(require('child_process').exec);
+import * as core from '@actions/core';
+import { Octokit } from '@octokit/rest';
+import { join as pathJoin } from 'path';
+import { promisify } from 'util';
+import { exec as execCallback } from 'child_process';
+import { readFile } from 'fs/promises';
+
+const exec = promisify(execCallback);
 
 const octokit = new Octokit({
   auth: core.getInput('token')
@@ -14,17 +17,27 @@ async function main() {
   const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
 
   // 1. Get the current version
-  const {version: newVersion} = __non_webpack_require__(pathJoin(core.getInput('path'), 'package.json'));
+  let newVersion: string;
+  try{
+    const packageFile = await readFile(pathJoin(core.getInput('path'), 'package.json'), 'utf8');
+    const { version } = JSON.parse(packageFile) as { version: string };
+    newVersion = version;
+  } catch (error) {
+    core.setFailed('Unable to read package.json at the specified path.');
+    core.error(error);
+    process.exit();
+  }
+
   core.info(`New version: ${newVersion}`);
 
   // 2. Get the latest release version and hash
   // We'll use the version for deciding whether or not we need to create
   // a new release (newVersion !== latestVersion) and we'll use the
   // sha to generate a change log from that commit up until the current.
-  let beginningSha;
+  let beginningSha: string;
   let firstRelease = false;
-  let previousVersion;
-  const {data: [latestRelease]} = await octokit.repos.listReleases({
+  let previousVersion: string;
+  const { data: [latestRelease] } = await octokit.repos.listReleases({
     owner,
     repo,
     per_page: 1
@@ -49,7 +62,7 @@ async function main() {
     // would be master and calling `git log` with the range `master..HEAD` would give us nothing.
     // To get a sha, we get the commit that the tag points to.
     try {
-      const {data} = await octokit.repos.getCommit({
+      const { data } = await octokit.repos.getCommit({
         owner,
         repo,
         ref: previousVersion
@@ -65,11 +78,11 @@ async function main() {
 
   // 3. If versions are different or if its the first release
   if (firstRelease || previousVersion !== newVersion) {
-    
+
     // 1. Generate the change log
-    let changeLog;
+    let changeLog: string;
     try {
-      const {stdout, stderr} = await exec(`git log ${firstRelease ? '' : `${beginningSha}..HEAD`} --pretty=format:"- %h %s"`);
+      const { stdout, stderr } = await exec(`git log ${firstRelease ? '' : `${beginningSha}..HEAD`} --pretty=format:"- %h %s"`);
       changeLog = stdout.trim();
       core.info(`Change Log:\n${changeLog}`);
     } catch (error) {
@@ -80,11 +93,11 @@ async function main() {
 
     // 2. Publish a release
     try {
-      const {data} = await octokit.repos.createRelease({
-        owner, 
-        repo, 
-        tag_name: newVersion, 
-        name: newVersion, 
+      const { data } = await octokit.repos.createRelease({
+        owner,
+        repo,
+        tag_name: newVersion,
+        name: newVersion,
         target_commitish: process.env.GITHUB_SHA,
         body: changeLog
       });
@@ -100,13 +113,13 @@ async function main() {
     } catch (error) {
       core.setFailed(`Failed to create release ${newVersion} for ${owner}/${repo}#${process.env.GITHUB_SHA}`);
       core.error(error);
-      core.setOutput('released', true);
-      core.debug(JSON.stringify(error.headers));
+      core.setOutput('released', false);
+      core.debug(JSON.stringify(error.response.headers));
       core.debug(JSON.stringify(error.request));
       process.exit();
     }
   }
-  
+
   // Nothing to do
   else {
     core.info('Version has not changed.');
