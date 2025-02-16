@@ -123,6 +123,7 @@ async function main() {
   // Nothing to do
   else {
     core.info('Version has not changed.');
+    core.setOutput('released', false);
   }
 }
 
