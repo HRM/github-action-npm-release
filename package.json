@@ -12,9 +12,11 @@
     "url": "git+https://github.com/justincy/github-action-npm-release.git"
   },
   "author": "Justin York",
-  "contributors": [{
-    "name": "Tamás Török"
-  }],
+  "contributors": [
+    {
+      "name": "Tamás Török"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/justincy/github-action-npm-release/issues"
@@ -25,7 +27,7 @@
     "@octokit/rest": "^21.1.1"
   },
   "devDependencies": {
-    "@types/node": "^22.13.4",
+    "@types/node": "^20.17.19",
     "@vercel/ncc": "^0.38.3",
     "typescript": "^5.7.3"
   }
