@@ -1,3 +1,8 @@
+
+
+ **This is a fork of the original action with updated dependencies. It also introduces TypeScript for better type safety and maintainability.**
+
+
 # Automatic GitHub Release
 
 Automatically generate a release when the package.json version changes. The release name and tag will match the new version. If no releases yet exist, this action will create the first release.
@@ -32,11 +37,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Release
-        uses: justincy/github-action-npm-release@v1.2.0
+        uses: hrm/github-action-npm-release@v2.0.3
         id: release
       - name: Print release output
         if: ${{ steps.release.outputs.released == 'true' }}
@@ -62,7 +67,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Automatic GitHub Release
-        uses: justincy/github-action-npm-release@2.0.1
+        uses: hrm/github-action-npm-release@v2.0.3
         id: release
       - uses: actions/setup-node@v1
         if: steps.release.outputs.released == 'true'
